@@ -1,10 +1,18 @@
-name: 'Wait'
-description: 'Wait a designated number of milliseconds'
+name: 'Build Lambdas and Push to S3'
+description: 'Zip up lambdas and lamba layers and push to s3'
 inputs:
-  milliseconds:  # id of input
-    description: 'number of milliseconds to wait'
+  bucket:
+    description: 'Name of S3 bucket'
     required: true
-    default: '1000'
+  role-to-assume:  
+    description: 'aws role to assume to push to s3'
+    required: true
+  region:
+    description: 'aws region'
+    required: true
+  lambda-paths:
+    description: `array of relative paths for the lambdas to build and zip`
+    required: true
 outputs:
   time: # output will be available to future steps
     description: 'The current time after waiting'
