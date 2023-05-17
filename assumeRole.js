@@ -19,7 +19,7 @@ let assumeRole = async function () {
 
   try {
     const creds = await sts.send(command).Credentials;
-
+    console.log(creds);
     core.setSecret(creds.AccessKeyId);
     core.exportVariable("AWS_ACCESS_KEY_ID", creds.AccessKeyId);
 
