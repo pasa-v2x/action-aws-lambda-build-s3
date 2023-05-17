@@ -16,16 +16,21 @@ let assumeRole = async function () {
     RoleArn: awsRole,
     RoleSessionName: "lambda-build",
   });
-  const creds = await sts.send(command).Credentials;
 
-  core.setSecret(creds.AccessKeyId);
-  core.exportVariable("AWS_ACCESS_KEY_ID", creds.AccessKeyId);
+  try {
+    const creds = await sts.send(command).Credentials;
 
-  core.setSecret(creds.SecretAccessKey);
-  core.exportVariable("AWS_SECRET_ACCESS_KEY", creds.SecretAccessKey);
+    core.setSecret(creds.AccessKeyId);
+    core.exportVariable("AWS_ACCESS_KEY_ID", creds.AccessKeyId);
 
-  core.setSecret(creds.SessionToken);
-  core.exportVariable("AWS_SESSION_TOKEN", creds.SessionToken);
-}
+    core.setSecret(creds.SecretAccessKey);
+    core.exportVariable("AWS_SECRET_ACCESS_KEY", creds.SecretAccessKey);
+
+    core.setSecret(creds.SessionToken);
+    core.exportVariable("AWS_SESSION_TOKEN", creds.SessionToken);
+  } catch (error) {
+    console.error(error);
+  }
+};
 
 module.exports = assumeRole;
