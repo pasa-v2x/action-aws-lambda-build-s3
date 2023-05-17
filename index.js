@@ -6,12 +6,20 @@ async function run() {
   try {
     await assumeRole();
 
-    const lambdaPaths = core.getInput("lambda-paths", { required: true });
-    const lambdas = JSON.parse(lambdaPaths);
-    lambdas.forEach((lambda) => {
-      build(lambda);
+    const lambdaPaths = parseLambdaPaths();
+    lambdaPaths.forEach((lambdaPath) => {
+      build(lambdaPath);
     });
   } catch (error) {}
+}
+
+export function parseLambdaPaths() {
+  input = core.getInput("lambda-paths", { required: true })
+  const lambdaPaths = [];
+  for (const path of input.split(/\r|\n/)) {
+      lambdaPaths.push(path);
+  }
+  return lambdaPaths;
 }
 
 run();
