@@ -43,7 +43,7 @@ function determineLanguage(lambdaPath) {
       return "golang";
     } else if (fs.existsSync(`${lambdaPath}/requirements.txt`) || fs.existsSync(`${lambdaPath}/Pipfile`) || fs.existsSync(`${lambdaPath}/Pipfile.lock`)) {
       return "python";
-    } else if (fs.existsSync(`${lambdaPath}/package.json`) || fs.existsSync(`${lambdaPath}/package-lock.json`) || fs.existsSync(`${lambdaPath}/yarn.lock`) || fs.existsSync(`${lambdaPath}/pnpm-lock.yaml`) || ) {
+    } else if (fs.existsSync(`${lambdaPath}/package.json`) || fs.existsSync(`${lambdaPath}/package-lock.json`) || fs.existsSync(`${lambdaPath}/yarn.lock`) || fs.existsSync(`${lambdaPath}/pnpm-lock.yaml`) ) {
       return "nodejs";
     } else if (fs.existsSync(`${lambdaPath}/tsconfig.json`)) {
       return "typescript";
