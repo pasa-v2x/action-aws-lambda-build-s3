@@ -1,6 +1,7 @@
 const { execSync } = require("child_process");
 const fs = require("fs");
 const { S3Client, PutObjectCommand } = require("@aws-sdk/client-s3");
+const core = require("@actions/core");
 
 let build = async function (dir) {
   // call git to get the full path to the directory of the repo
@@ -32,7 +33,7 @@ let build = async function (dir) {
       buildTypescript(lambdaPath, buildPath, artifactName, artifactLayerName);
       break;
     default:
-      throw new Error("Language not supported");
+        core.setFailed("Language not supported");   
   }
   uploadToS3();
 };
@@ -70,7 +71,7 @@ rm handler
   try {
     execSync(command);
   } catch (error) {
-    console.error("An error occurred while building Golang:", error.message);
+    core.setFailed(`An error occurred while building Golang: ${error.message}`)
   }
 }
 
@@ -98,7 +99,7 @@ rm -Rf python
     }
     execSync(zipLayerCommand);
   } catch (error) {
-    console.error("An error occurred while building Python:", error.message);
+    core.setFailed(`An error occurred while building Python: ${error.message}`)
   }
 }
 
@@ -130,7 +131,7 @@ npm install --omit=dev
     }
     execSync(`cd ${lambdaPath} && rm -Rf nodejs node_modules`);
   } catch (error) {
-    console.error("An error occurred while building Node.js:", error.message);
+    core.setFailed(`An error occurred while building Javascript: ${error.message}`)
   }
 }
 
@@ -164,10 +165,7 @@ npm install --omit=dev
     }
     execSync(`cd ${lambdaPath} && rm -Rf nodejs node_modules dist`);
   } catch (error) {
-    console.error(
-      "An error occurred while building TypeScript:",
-      error.message
-    );
+    core.setFailed(`An error occurred while building Typescript: ${error.message}`)
   }
 }
 
@@ -205,7 +203,7 @@ async function uploadToS3(buildPath, artifactName, artifactLayerName) {
       fs.unlinkSync(`${buildPath}/${artifactLayerName}`);
     }
   } catch (error) {
-    console.error("An error occurred while uploading to S3:", error);
+    core.setFailed(`An error occurred while uploading to S3: ${error.message}`)
   }
 }
 

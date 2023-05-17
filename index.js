@@ -11,7 +11,7 @@ async function run() {
       build(lambdaPath);
     });
   } catch (error) {
-    console.error(error);
+    core.setFailed(error.message);
   }
 }
 

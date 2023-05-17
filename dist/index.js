@@ -22,17 +22,22 @@ let assumeRole = async function () {
     RoleArn: awsRole,
     RoleSessionName: "lambda-build",
   });
-  const creds = await sts.send(command).Credentials;
 
-  core.setSecret(creds.AccessKeyId);
-  core.exportVariable("AWS_ACCESS_KEY_ID", creds.AccessKeyId);
+  try {
+    const creds = await sts.send(command).Credentials;
+    core.debug(creds);;
+    core.setSecret(creds.AccessKeyId);
+    core.exportVariable("AWS_ACCESS_KEY_ID", creds.AccessKeyId);
 
-  core.setSecret(creds.SecretAccessKey);
-  core.exportVariable("AWS_SECRET_ACCESS_KEY", creds.SecretAccessKey);
+    core.setSecret(creds.SecretAccessKey);
+    core.exportVariable("AWS_SECRET_ACCESS_KEY", creds.SecretAccessKey);
 
-  core.setSecret(creds.SessionToken);
-  core.exportVariable("AWS_SESSION_TOKEN", creds.SessionToken);
-}
+    core.setSecret(creds.SessionToken);
+    core.exportVariable("AWS_SESSION_TOKEN", creds.SessionToken);
+  } catch (error) {
+    core.setFailed(error.message);
+  }
+};
 
 module.exports = assumeRole;
 
@@ -45,6 +50,7 @@ module.exports = assumeRole;
 const { execSync } = __nccwpck_require__(32081);
 const fs = __nccwpck_require__(57147);
 const { S3Client, PutObjectCommand } = __nccwpck_require__(19250);
+const core = __nccwpck_require__(42186);
 
 let build = async function (dir) {
   // call git to get the full path to the directory of the repo
@@ -76,7 +82,7 @@ let build = async function (dir) {
       buildTypescript(lambdaPath, buildPath, artifactName, artifactLayerName);
       break;
     default:
-      throw new Error("Language not supported");
+        core.setFailed("Language not supported");   
   }
   uploadToS3();
 };
@@ -114,7 +120,7 @@ rm handler
   try {
     execSync(command);
   } catch (error) {
-    console.error("An error occurred while building Golang:", error.message);
+    core.setFailed(`An error occurred while building Golang: ${error.message}`)
   }
 }
 
@@ -142,7 +148,7 @@ rm -Rf python
     }
     execSync(zipLayerCommand);
   } catch (error) {
-    console.error("An error occurred while building Python:", error.message);
+    core.setFailed(`An error occurred while building Python: ${error.message}`)
   }
 }
 
@@ -174,7 +180,7 @@ npm install --omit=dev
     }
     execSync(`cd ${lambdaPath} && rm -Rf nodejs node_modules`);
   } catch (error) {
-    console.error("An error occurred while building Node.js:", error.message);
+    core.setFailed(`An error occurred while building Javascript: ${error.message}`)
   }
 }
 
@@ -208,10 +214,7 @@ npm install --omit=dev
     }
     execSync(`cd ${lambdaPath} && rm -Rf nodejs node_modules dist`);
   } catch (error) {
-    console.error(
-      "An error occurred while building TypeScript:",
-      error.message
-    );
+    core.setFailed(`An error occurred while building Typescript: ${error.message}`)
   }
 }
 
@@ -249,7 +252,7 @@ async function uploadToS3(buildPath, artifactName, artifactLayerName) {
       fs.unlinkSync(`${buildPath}/${artifactLayerName}`);
     }
   } catch (error) {
-    console.error("An error occurred while uploading to S3:", error);
+    core.setFailed(`An error occurred while uploading to S3: ${error.message}`)
   }
 }
 
@@ -39494,7 +39497,7 @@ async function run() {
       build(lambdaPath);
     });
   } catch (error) {
-    console.error(error);
+    core.setFailed(error.message);
   }
 }
 
