@@ -19,7 +19,7 @@ function parseLambdaPaths() {
   const input = core.getInput("lambda-paths", { required: true })
   const lambdaPaths = [];
   for (const path of input.split(/\r|\n/)) {
-      lambdaPaths.push(path);
+    lambdaPaths.push(path.trim());
   }
   return lambdaPaths;
 }
