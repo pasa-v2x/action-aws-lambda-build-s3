@@ -1,5 +1,6 @@
 const { execSync } = require("child_process");
 const fs = require("fs");
+const fsx = require("fs-extra");
 const { S3Client, PutObjectCommand } = require("@aws-sdk/client-s3");
 const core = require("@actions/core");
 
@@ -33,7 +34,7 @@ let build = async function (dir) {
       buildTypescript(lambdaPath, buildPath, artifactName, artifactLayerName);
       break;
     default:
-        core.setFailed("Language not supported");   
+      core.setFailed("Language not supported");
   }
   uploadToS3();
 };
@@ -71,7 +72,7 @@ rm handler
   try {
     execSync(command);
   } catch (error) {
-    core.setFailed(`An error occurred while building Golang: ${error.message}`)
+    core.setFailed(`An error occurred while building Golang: ${error.message}`);
   }
 }
 
@@ -99,7 +100,7 @@ rm -Rf python
     }
     execSync(zipLayerCommand);
   } catch (error) {
-    core.setFailed(`An error occurred while building Python: ${error.message}`)
+    core.setFailed(`An error occurred while building Python: ${error.message}`);
   }
 }
 
@@ -122,7 +123,7 @@ npm install --omit=dev
 
       if (fs.existsSync(`${lambdaPath}/node_modules`)) {
         fs.mkdirSync(`${lambdaPath}/nodejs`, { recursive: true });
-        fs.renameSync(
+        fsx.moveSync(
           `${lambdaPath}/node_modules`,
           `${lambdaPath}/nodejs/node_modules`
         );
@@ -131,7 +132,9 @@ npm install --omit=dev
     }
     execSync(`cd ${lambdaPath} && rm -Rf nodejs node_modules`);
   } catch (error) {
-    core.setFailed(`An error occurred while building Javascript: ${error.message}`)
+    core.setFailed(
+      `An error occurred while building Javascript: ${error.message}`
+    );
   }
 }
 
@@ -156,7 +159,7 @@ npm install --omit=dev
 `);
       if (fs.existsSync(`${lambdaPath}/node_modules`)) {
         fs.mkdirSync(`${lambdaPath}/nodejs`, { recursive: true });
-        fs.renameSync(
+        fsx.moveSync(
           `${lambdaPath}/node_modules`,
           `${lambdaPath}/nodejs/node_modules`
         );
@@ -165,7 +168,9 @@ npm install --omit=dev
     }
     execSync(`cd ${lambdaPath} && rm -Rf nodejs node_modules dist`);
   } catch (error) {
-    core.setFailed(`An error occurred while building Typescript: ${error.message}`)
+    core.setFailed(
+      `An error occurred while building Typescript: ${error.message}`
+    );
   }
 }
 
@@ -203,7 +208,7 @@ async function uploadToS3(buildPath, artifactName, artifactLayerName) {
       fs.unlinkSync(`${buildPath}/${artifactLayerName}`);
     }
   } catch (error) {
-    core.setFailed(`An error occurred while uploading to S3: ${error.message}`)
+    core.setFailed(`An error occurred while uploading to S3: ${error.message}`);
   }
 }
 
