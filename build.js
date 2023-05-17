@@ -199,4 +199,4 @@ async function uploadToS3(buildPath, artifactName, artifactLayerName) {
     }
 }
 
-module.exports = { build }
+module.exports = build

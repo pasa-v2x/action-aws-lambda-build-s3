@@ -1,5 +1,5 @@
-const assumeRole = "./assumeRole"
-const build = "./build"
+const assumeRole = require("./assumeRole")
+const build = require("./build")
 const core = require("@actions/core");
 
 async function run() {
@@ -10,11 +10,13 @@ async function run() {
     lambdaPaths.forEach((lambdaPath) => {
       build(lambdaPath);
     });
-  } catch (error) {}
+  } catch (error) {
+    console.error(error);
+  }
 }
 
-export function parseLambdaPaths() {
-  input = core.getInput("lambda-paths", { required: true })
+function parseLambdaPaths() {
+  const input = core.getInput("lambda-paths", { required: true })
   const lambdaPaths = [];
   for (const path of input.split(/\r|\n/)) {
       lambdaPaths.push(path);

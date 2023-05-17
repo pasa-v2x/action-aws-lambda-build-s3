@@ -28,4 +28,4 @@ let assumeRole = async function () {
   core.exportVariable("AWS_SESSION_TOKEN", creds.SessionToken);
 }
 
-module.exports = { assumeRole };
+module.exports = assumeRole;
