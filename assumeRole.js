@@ -1,4 +1,4 @@
-import { STSClient, AssumeRoleCommand } from "@aws-sdk/client-sts";
+const { STSClient, AssumeRoleCommand } = require("@aws-sdk/client-sts");
 const core = require("@actions/core");
 
 function exportRegion(region) {

@@ -4,10 +4,10 @@ inputs:
   bucket:
     description: 'Name of S3 bucket'
     required: true
-  role-to-assume:  
+  aws-role:  
     description: 'aws role to assume to push to s3'
     required: true
-  region:
+  aws-region:
     description: 'aws region'
     required: true
   lambda-paths:
