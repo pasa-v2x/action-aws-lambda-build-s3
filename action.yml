@@ -11,7 +11,8 @@ inputs:
     description: 'aws region'
     required: true
   lambda-paths:
-    description: `array of relative paths for the lambdas to build and zip`
+    description: |-
+      newline-separated list of relative paths for the lambdas to build and zip
     required: true
 outputs:
   time: # output will be available to future steps
