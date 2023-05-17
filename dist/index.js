@@ -2809,14 +2809,47 @@ module.exports = require("util");
 /******/ 	}
 /******/ 	
 /************************************************************************/
+/******/ 	/* webpack/runtime/define property getters */
+/******/ 	(() => {
+/******/ 		// define getter functions for harmony exports
+/******/ 		__nccwpck_require__.d = (exports, definition) => {
+/******/ 			for(var key in definition) {
+/******/ 				if(__nccwpck_require__.o(definition, key) && !__nccwpck_require__.o(exports, key)) {
+/******/ 					Object.defineProperty(exports, key, { enumerable: true, get: definition[key] });
+/******/ 				}
+/******/ 			}
+/******/ 		};
+/******/ 	})();
+/******/ 	
+/******/ 	/* webpack/runtime/hasOwnProperty shorthand */
+/******/ 	(() => {
+/******/ 		__nccwpck_require__.o = (obj, prop) => (Object.prototype.hasOwnProperty.call(obj, prop))
+/******/ 	})();
+/******/ 	
+/******/ 	/* webpack/runtime/make namespace object */
+/******/ 	(() => {
+/******/ 		// define __esModule on exports
+/******/ 		__nccwpck_require__.r = (exports) => {
+/******/ 			if(typeof Symbol !== 'undefined' && Symbol.toStringTag) {
+/******/ 				Object.defineProperty(exports, Symbol.toStringTag, { value: 'Module' });
+/******/ 			}
+/******/ 			Object.defineProperty(exports, '__esModule', { value: true });
+/******/ 		};
+/******/ 	})();
+/******/ 	
 /******/ 	/* webpack/runtime/compat */
 /******/ 	
 /******/ 	if (typeof __nccwpck_require__ !== 'undefined') __nccwpck_require__.ab = __dirname + "/";
 /******/ 	
 /************************************************************************/
 var __webpack_exports__ = {};
-// This entry need to be wrapped in an IIFE because it need to be isolated against other modules in the chunk.
+// This entry need to be wrapped in an IIFE because it need to be in strict mode.
 (() => {
+"use strict";
+__nccwpck_require__.r(__webpack_exports__);
+/* harmony export */ __nccwpck_require__.d(__webpack_exports__, {
+/* harmony export */   "parseLambdaPaths": () => (/* binding */ parseLambdaPaths)
+/* harmony export */ });
 const assumeRole = "./assumeRole"
 const build = "./build"
 const core = __nccwpck_require__(186);
@@ -2825,12 +2858,20 @@ async function run() {
   try {
     await assumeRole();
 
-    const lambdaPaths = core.getInput("lambda-paths", { required: true });
-    const lambdas = JSON.parse(lambdaPaths);
-    lambdas.forEach((lambda) => {
-      build(lambda);
+    const lambdaPaths = parseLambdaPaths();
+    lambdaPaths.forEach((lambdaPath) => {
+      build(lambdaPath);
     });
   } catch (error) {}
+}
+
+function parseLambdaPaths() {
+  input = core.getInput("lambda-paths", { required: true })
+  const lambdaPaths = [];
+  for (const path of input.split(/\r|\n/)) {
+      lambdaPaths.push(path);
+  }
+  return lambdaPaths;
 }
 
 run();
