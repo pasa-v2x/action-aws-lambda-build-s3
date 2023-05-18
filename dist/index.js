@@ -41967,6 +41967,7 @@ npm install --omit=dev
 `);
 
       if (fs.existsSync(`${lambdaPath}/node_modules`)) {
+        fs.rmSync(`${lambdaPath}/nodejs`, { recursive: true, force: true });
         fs.mkdirSync(`${lambdaPath}/nodejs/node_modules`, { recursive: true });        
         fsx.moveSync(
           `${lambdaPath}/node_modules`,
@@ -42003,6 +42004,7 @@ zip -r ${buildPath}/${artifactName} .
 npm install --omit=dev
 `);
       if (fs.existsSync(`${lambdaPath}/node_modules`)) {
+        fs.rmSync(`${lambdaPath}/nodejs`, { recursive: true, force: true });
         fs.mkdirSync(`${lambdaPath}/nodejs/node_modules`, { recursive: true });
         fsx.moveSync(
           `${lambdaPath}/node_modules`,
