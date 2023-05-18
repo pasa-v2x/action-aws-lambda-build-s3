@@ -118,7 +118,7 @@ zip -r ${buildPath}/${artifactName} .
 
     if (fs.existsSync(`${lambdaPath}/package.json`)) {
       execSync(` cd ${lambdaPath}
-npm install --production=true
+npm install --omit=dev
 `);
 
       if (fs.existsSync(`${lambdaPath}/node_modules`)) {
@@ -155,7 +155,7 @@ zip -r ${buildPath}/${artifactName} .
 
     if (fs.existsSync(`${lambdaPath}/package.json`)) {
       execSync(` cd ${lambdaPath}
-npm install --production=true
+npm install --omit=dev
 `);
       if (fs.existsSync(`${lambdaPath}/node_modules`)) {
         fs.mkdirSync(`${lambdaPath}/nodejs/node_modules`, { recursive: true });
