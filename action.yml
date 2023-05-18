@@ -1,7 +1,7 @@
 name: 'Build Lambdas and Push to S3'
 description: 'Zip up lambdas and lamba layers and push to s3'
 inputs:
-  bucket:
+  s3-bucket:
     description: 'Name of S3 bucket'
     required: true
   aws-role:  

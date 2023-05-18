@@ -118,7 +118,7 @@ zip -r ${buildPath}/${artifactName} .
 
     if (fs.existsSync(`${lambdaPath}/package.json`)) {
       execSync(` cd ${lambdaPath}
-npm install --omit=dev
+npm install --production=true
 `);
 
       if (fs.existsSync(`${lambdaPath}/node_modules`)) {
@@ -155,7 +155,7 @@ zip -r ${buildPath}/${artifactName} .
 
     if (fs.existsSync(`${lambdaPath}/package.json`)) {
       execSync(` cd ${lambdaPath}
-npm install --omit=dev
+npm install --production=true
 `);
       if (fs.existsSync(`${lambdaPath}/node_modules`)) {
         fs.mkdirSync(`${lambdaPath}/nodejs/node_modules`, { recursive: true });
@@ -175,7 +175,7 @@ npm install --omit=dev
 }
 
 async function uploadToS3(buildPath, artifactName, artifactLayerName) {
-  const bucket = core.getInput("bucket", { required: true });
+  const bucket = core.getInput("s3-bucket", { required: true });
   const s3Client = new S3Client();
   try {
     // call git to get commit hash
