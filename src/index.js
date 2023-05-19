@@ -1,11 +1,11 @@
-const assumeRole = require("./assumeRole")
+// const assumeRole = require("./assumeRole")
 const build = require("./build")
 const core = require("@actions/core");
 
 async function run() {
+  // await assumeRole();
+  
   try {
-    await assumeRole();
-
     const lambdaPaths = parseLambdaPaths();
     lambdaPaths.forEach((lambdaPath) => {
       build(lambdaPath);

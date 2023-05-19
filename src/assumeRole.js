@@ -18,16 +18,18 @@ let assumeRole = async function () {
   });
 
   try {
-    const creds = await sts.send(command).Credentials;
-    core.debug(creds);
-    core.setSecret(creds.AccessKeyId);
-    core.exportVariable("AWS_ACCESS_KEY_ID", creds.AccessKeyId);
+    const resp = await sts.send(command);
+    if (resp.error) throw resp.error;
+    core.debug(`STS resp: ${resp}`);
+    const { AccessKeyId, SecretAccessKey, SessionToken } = resp.Credentials;
+    core.setSecret(AccessKeyId);
+    core.exportVariable("AWS_ACCESS_KEY_ID", AccessKeyId);
 
-    core.setSecret(creds.SecretAccessKey);
-    core.exportVariable("AWS_SECRET_ACCESS_KEY", creds.SecretAccessKey);
+    core.setSecret(SecretAccessKey);
+    core.exportVariable("AWS_SECRET_ACCESS_KEY", SecretAccessKey);
 
-    core.setSecret(creds.SessionToken);
-    core.exportVariable("AWS_SESSION_TOKEN", creds.SessionToken);
+    core.setSecret(SessionToken);
+    core.exportVariable("AWS_SESSION_TOKEN", SessionToken);
   } catch (error) {
     core.setFailed(error.message);
   }
