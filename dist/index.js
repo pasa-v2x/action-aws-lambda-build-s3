@@ -9500,29 +9500,30 @@ const build = async function (dir) {
   const repoPath = execSync("git rev-parse --show-toplevel").toString().trim();
 
   // create full paths for exec commands
-  const buildPath = `${repoPath}/build`;
+  const uploadArtifactName = core.getInput("github-artifact-name", { required: true })
+  const buildPath = `${repoPath}/${uploadArtifactName}`;
   const lambdaPath = `${repoPath}/${dir}`;
 
   const LANG = determineLanguage(lambdaPath);
 
   // get last folder in dir and use as artifactName
-  const artifactBaseName = dir.split("/").pop();
-  const artifactName = `${artifactBaseName}.zip`;
-  const artifactLayerName = `${artifactBaseName}_layer.zip`;
+  const lambdaBaseName = dir.split("/").pop();
+  const lambdaZipName = `${lambdaBaseName}.zip`;
+  const lambdaLayerZipName = `${lambdaBaseName}_layer.zip`;
 
   // create switch the uses language to build
   switch (LANG) {
     case "golang":
-      buildGolang(lambdaPath, buildPath, artifactName);
+      buildGolang(lambdaPath, buildPath, lambdaZipName);
       break;
     case "python":
-      buildPython(lambdaPath, buildPath, artifactName, artifactLayerName);
+      buildPython(lambdaPath, buildPath, lambdaZipName, lambdaLayerZipName);
       break;
     case "nodejs":
-      buildJavascript(lambdaPath, buildPath, artifactName, artifactLayerName);
+      buildJavascript(lambdaPath, buildPath, lambdaZipName, lambdaLayerZipName);
       break;
     case "typescript":
-      buildTypescript(lambdaPath, buildPath, artifactName, artifactLayerName);
+      buildTypescript(lambdaPath, buildPath, lambdaZipName, lambdaLayerZipName);
       break;
     default:
       core.setFailed("Language not supported");

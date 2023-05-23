@@ -1,13 +1,11 @@
 const { create } = require("@actions/artifact");
 const core = require("@actions/core");
 const fs = require("fs");
-const { execSync } = require("child_process");
 
 const upload = async function () {
   try {
     
-    const repoPath = execSync("git rev-parse --show-toplevel").toString().trim();
-    const buildDir = repoPath + "/build";
+    const buildDir = "build";
     const fileArray = fs.readdirSync(buildDir);
     core.debug(`Files in build directory: ${fileArray}`);
     const artifactClient = create();
