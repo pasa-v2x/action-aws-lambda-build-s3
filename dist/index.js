@@ -9500,7 +9500,7 @@ const build = async function (dir) {
   const repoPath = execSync("git rev-parse --show-toplevel").toString().trim();
 
   // create full paths for exec commands
-  const buildPath = "build"
+  const buildPath = "/tmp/build"
   fs.mkdirSync(buildPath, { recursive: true });
   const lambdaPath = `${repoPath}/${dir}`;
 
