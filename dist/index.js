@@ -9704,7 +9704,7 @@ const upload = async function () {
       );
     }
   } catch (error) {
-    core.setFailed("Error Uploading Lambda ZIPs artifact", error.message);
+    core.setFailed(`Error Uploading Lambda ZIPs artifact: ${error.message}`);
   }
 };
 
