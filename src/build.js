@@ -1,10 +1,8 @@
 const { execSync } = require("child_process");
 const fs = require("fs");
-const fsx = require("fs-extra");
-const { S3Client, PutObjectCommand } = require("@aws-sdk/client-s3");
 const core = require("@actions/core");
 
-let build = async function (dir) {
+const build = async function (dir) {
   // call git to get the full path to the directory of the repo
   const repoPath = execSync("git rev-parse --show-toplevel").toString().trim();
 
@@ -36,7 +34,6 @@ let build = async function (dir) {
     default:
       core.setFailed("Language not supported");
   }
-  uploadToS3();
 };
 
 function determineLanguage(lambdaPath) {
@@ -124,10 +121,7 @@ npm install --omit=dev
       if (fs.existsSync(`${lambdaPath}/node_modules`)) {
         fs.rmSync(`${lambdaPath}/nodejs`, { recursive: true, force: true });
         fs.mkdirSync(`${lambdaPath}/nodejs/node_modules`, { recursive: true });        
-        fsx.moveSync(
-          `${lambdaPath}/node_modules`,
-          `${lambdaPath}/nodejs/node_modules`
-        );
+        execSync(`mv ${lambdaPath}/node_modules ${lambdaPath}/nodejs/node_modules`)
         execSync(`zip -q -r ${buildPath}/${artifactLayerName} nodejs/`);
       }
     }
@@ -161,10 +155,7 @@ npm install --omit=dev
       if (fs.existsSync(`${lambdaPath}/node_modules`)) {
         fs.rmSync(`${lambdaPath}/nodejs`, { recursive: true, force: true });
         fs.mkdirSync(`${lambdaPath}/nodejs/node_modules`, { recursive: true });
-        fsx.moveSync(
-          `${lambdaPath}/node_modules`,
-          `${lambdaPath}/nodejs/node_modules`
-        );
+        execSync(`mv ${lambdaPath}/node_modules ${lambdaPath}/nodejs/node_modules`)
         execSync(`zip -q -r ${buildPath}/${artifactLayerName} nodejs/`);
       }
     }
@@ -173,44 +164,6 @@ npm install --omit=dev
     core.setFailed(
       `An error occurred while building Typescript: ${error.message}`
     );
-  }
-}
-
-async function uploadToS3(buildPath, artifactName, artifactLayerName) {
-  const bucket = core.getInput("s3-bucket", { required: true });
-  const s3Client = new S3Client();
-  try {
-    // call git to get commit hash
-    const commitHash = execSync("git log -1 --format=format:%H")
-      .toString()
-      .trim();
-    // call git to get the name of the repo
-    const repoName = execSync("basename `git rev-parse --show-toplevel`")
-      .toString()
-      .trim();
-    if (fs.existsSync(`${buildPath}/${artifactName}`)) {
-      const uploadParams = {
-        Bucket: bucket,
-        Key: `${repoName}/${commitHash}/${artifactName}`,
-        Body: fs.createReadStream(`${buildPath}/${artifactName}`),
-      };
-
-      await s3Client.send(new PutObjectCommand(uploadParams));
-      fs.unlinkSync(`${buildPath}/${artifactName}`);
-    }
-
-    if (fs.existsSync(`${buildPath}/${artifactLayerName}`)) {
-      const uploadParams = {
-        Bucket: bucket,
-        Key: `${repoName}/${commitHash}/${artifactLayerName}`,
-        Body: fs.createReadStream(`${buildPath}/${artifactLayerName}`),
-      };
-
-      await s3Client.send(new PutObjectCommand(uploadParams));
-      fs.unlinkSync(`${buildPath}/${artifactLayerName}`);
-    }
-  } catch (error) {
-    core.setFailed(`An error occurred while uploading to S3: ${error.message}`);
   }
 }
 

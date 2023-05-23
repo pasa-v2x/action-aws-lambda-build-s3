@@ -1,15 +1,15 @@
-// const assumeRole = require("./assumeRole")
 const build = require("./build")
+const upload = require("./upload")
 const core = require("@actions/core");
 
 async function run() {
-  // await assumeRole();
-  
   try {
     const lambdaPaths = parseLambdaPaths();
+    const builds = []
     lambdaPaths.forEach((lambdaPath) => {
-      build(lambdaPath);
+      builds.push(build(lambdaPath));
     });
+    upload(builds);
   } catch (error) {
     core.setFailed(error.message);
   }
