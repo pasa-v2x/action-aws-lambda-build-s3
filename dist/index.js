@@ -9501,6 +9501,7 @@ const build = async function (dir) {
 
   // create full paths for exec commands
   const buildPath = "build"
+  fs.mkdirSync(buildPath, { recursive: true });
   const lambdaPath = `${repoPath}/${dir}`;
 
   const LANG = determineLanguage(lambdaPath);
