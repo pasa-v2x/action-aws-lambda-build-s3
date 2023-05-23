@@ -9500,8 +9500,7 @@ const build = async function (dir) {
   const repoPath = execSync("git rev-parse --show-toplevel").toString().trim();
 
   // create full paths for exec commands
-  const uploadArtifactName = core.getInput("github-artifact-name", { required: true })
-  const buildPath = `${repoPath}/${uploadArtifactName}`;
+  const buildPath = "build"
   const lambdaPath = `${repoPath}/${dir}`;
 
   const LANG = determineLanguage(lambdaPath);
@@ -9673,13 +9672,11 @@ module.exports = build;
 const { create } = __nccwpck_require__(2605);
 const core = __nccwpck_require__(2186);
 const fs = __nccwpck_require__(7147);
-const { execSync } = __nccwpck_require__(2081);
 
 const upload = async function () {
   try {
     
-    const repoPath = execSync("git rev-parse --show-toplevel").toString().trim();
-    const buildDir = repoPath + "/build";
+    const buildDir = "build";
     const fileArray = fs.readdirSync(buildDir);
     core.debug(`Files in build directory: ${fileArray}`);
     const artifactClient = create();
