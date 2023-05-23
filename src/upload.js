@@ -7,9 +7,9 @@ const upload = async function () {
   try {
     
     const repoPath = execSync("git rev-parse --show-toplevel").toString().trim();
-    
-    const fileArray = fs.readdirSync(`${repoPath}/build`);
-    
+    const buildDir = repoPath + "/build";
+    const fileArray = fs.readdirSync(buildDir);
+    core.debug(`Files in build directory: ${fileArray}`);
     const artifactClient = create();
 
     const options = {
@@ -19,7 +19,7 @@ const upload = async function () {
     const uploadResponse = await artifactClient.uploadArtifact(
       core.getInput("github-artifact-name", { required: true }),
       fileArray,
-      `${repoPath}/build`,
+      buildDir,
       options
     );
 
