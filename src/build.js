@@ -122,7 +122,8 @@ npm install --omit=dev
         fs.rmSync(`${lambdaPath}/nodejs`, { recursive: true, force: true });
         fs.mkdirSync(`${lambdaPath}/nodejs/node_modules`, { recursive: true });        
         execSync(`mv ${lambdaPath}/node_modules ${lambdaPath}/nodejs/node_modules`)
-        core.log(fs.readdirSync('${lambdaPath}/nodejs/'))
+        const files = fs.readdirSync(`${lambdaPath}/nodejs/`)
+        core.log(`FILES: ${files}`)
         execSync(`zip -q -r ${buildPath}/${artifactLayerName} nodejs/`);
       }
     }
@@ -166,6 +167,7 @@ npm install --omit=dev
     core.setFailed(
       `An error occurred while building Typescript: ${error.message}`
     );
+
   }
 }
 
