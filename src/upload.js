@@ -7,6 +7,11 @@ const upload = async function () {
     
     const buildDir = "/tmp/build";
     const fileArray = fs.readdirSync(buildDir);
+    // loop through fileArray and prefix each filename with the buildDir
+    fileArray.forEach((filename, index) => {
+      fileArray[index] = `${buildDir}/${filename}`;
+    });
+    
     core.debug(`Files in build directory: ${fileArray}`);
     const artifactClient = create();
 
