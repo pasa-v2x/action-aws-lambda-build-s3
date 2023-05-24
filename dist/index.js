@@ -9677,7 +9677,7 @@ const fs = __nccwpck_require__(7147);
 const upload = async function () {
   try {
     
-    const buildDir = "build";
+    const buildDir = "/tmp/build";
     const fileArray = fs.readdirSync(buildDir);
     core.debug(`Files in build directory: ${fileArray}`);
     const artifactClient = create();
