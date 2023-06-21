@@ -40191,17 +40191,13 @@ const build = async function (dir) {
   // create switch the uses language to build
   switch (LANG) {
     case "golang":
-      buildGolang(lambdaPath, buildPath, lambdaZipName);
-      break;
+      return buildGolang(lambdaPath, buildPath, lambdaZipName);
     case "python":
-      buildPython(lambdaPath, buildPath, lambdaZipName, lambdaLayerZipName);
-      break;
+      return buildPython(lambdaPath, buildPath, lambdaZipName, lambdaLayerZipName);
     case "nodejs":
-      buildJavascript(lambdaPath, buildPath, lambdaZipName, lambdaLayerZipName);
-      break;
+      return buildJavascript(lambdaPath, buildPath, lambdaZipName, lambdaLayerZipName);
     case "typescript":
-      buildTypescript(lambdaPath, buildPath, lambdaZipName, lambdaLayerZipName);
-      break;
+      return buildTypescript(lambdaPath, buildPath, lambdaZipName, lambdaLayerZipName);
     default:
       core.setFailed("Language not supported");
   }
