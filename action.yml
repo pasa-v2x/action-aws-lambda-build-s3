@@ -1,16 +1,13 @@
 name: 'Build Lambdas and Push to S3'
 description: 'Zip up lambdas and lamba layers and push to s3'
 inputs:
-  github-artifact-name:
-    description: 'the artifact name to be stored in github action'
+  s3-bucket:
+    description: 's3 bucket to upload artifacts'
     require: true
   lambda-paths:
     description: |-
       newline-separated list of relative paths for the lambdas to build and zip
     required: true
-outputs:
-  time: # output will be available to future steps
-    description: 'The current time after waiting'
 runs:
   using: 'node16'
   main: 'dist/index.js'

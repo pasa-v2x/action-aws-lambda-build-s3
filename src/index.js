@@ -5,11 +5,14 @@ const core = require("@actions/core");
 async function run() {
   try {
     const lambdaPaths = parseLambdaPaths();
-    const builds = []
+    
     lambdaPaths.forEach((lambdaPath) => {
-      builds.push(build(lambdaPath));
+      const artifactFiles = build(lambdaPath);
+      artifactFiles.forEach((artifactFile) => {
+        upload(artifactFile);
+      });
     });
-    upload(builds);
+    
   } catch (error) {
     core.setFailed(error.message);
   }
@@ -24,4 +27,9 @@ function parseLambdaPaths() {
   return lambdaPaths;
 }
 
-run();
+run().then(() => {
+  console.log("Finished");
+}).catch((error) => {
+  console.error(error);
+  process.exit(1);
+});

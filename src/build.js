@@ -69,6 +69,7 @@ rm handler
 `;
   try {
     execSync(command);
+    return [`${buildPath}/${artifactName}`]
   } catch (error) {
     core.setFailed(`An error occurred while building Golang: ${error.message}`);
   }
@@ -95,8 +96,11 @@ pip install -r requirements.txt -t python
 zip -q -r ${buildPath}/${artifactLayerName} python/
 rm -Rf python
 `;
+    }else{
+      return [`${buildPath}/${artifactName}`] 
     }
     execSync(zipLayerCommand);
+    return [`${buildPath}/${artifactName}`, `${buildPath}/${artifactLayerName}`] 
   } catch (error) {
     core.setFailed(`An error occurred while building Python: ${error.message}`);
   }
@@ -125,8 +129,11 @@ npm install --omit=dev
         execSync(`mv ${lambdaPath}/node_modules ${lambdaPath}/nodejs/node_modules`)
         execSync(`zip -q -r ${buildPath}/${artifactLayerName} ${lambdaPath}/nodejs/`);
       }
+    }else{
+      return [`${buildPath}/${artifactName}`] 
     }
     execSync(`cd ${lambdaPath} && rm -Rf nodejs node_modules`);
+    return [`${buildPath}/${artifactName}`, `${buildPath}/${artifactLayerName}`] 
   } catch (error) {
     core.setFailed(
       `An error occurred while building Javascript: ${error.message}`
@@ -159,8 +166,11 @@ npm install --omit=dev
         execSync(`mv ${lambdaPath}/node_modules ${lambdaPath}/nodejs/node_modules`)
         execSync(`zip -q -r ${buildPath}/${artifactLayerName} ${lambdaPath}/nodejs/`);
       }
+    }else{
+      return [`${buildPath}/${artifactName}`] 
     }
     execSync(`cd ${lambdaPath} && rm -Rf nodejs node_modules dist`);
+    return [`${buildPath}/${artifactName}`, `${buildPath}/${artifactLayerName}`] 
   } catch (error) {
     core.setFailed(
       `An error occurred while building Typescript: ${error.message}`
