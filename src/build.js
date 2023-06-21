@@ -15,19 +15,19 @@ const build = async function (dir) {
 
   // get last folder in dir and use as artifactName
   const lambdaBaseName = dir.split("/").pop();
-  const lambdaZipName = `${lambdaBaseName}.zip`;
-  const lambdaLayerZipName = `${lambdaBaseName}_layer.zip`;
+  const lambdaZipPath = `${buildPath}/${lambdaBaseName}.zip`;
+  const lambdaLayerZipPath = `${buildPath}/${lambdaBaseName}_layer.zip`;
 
   // create switch the uses language to build
   switch (LANG) {
     case "golang":
-      return buildGolang(lambdaPath, buildPath, lambdaZipName);
+      return buildGolang(lambdaPath, lambdaZipPath);
     case "python":
-      return buildPython(lambdaPath, buildPath, lambdaZipName, lambdaLayerZipName);
+      return buildPython(lambdaPath, lambdaZipPath, lambdaLayerZipPath);
     case "nodejs":
-      return buildJavascript(lambdaPath, buildPath, lambdaZipName, lambdaLayerZipName);
+      return buildJavascript(lambdaPath, lambdaZipPath, lambdaLayerZipPath);
     case "typescript":
-      return buildTypescript(lambdaPath, buildPath, lambdaZipName, lambdaLayerZipName);
+      return buildTypescript(lambdaPath, lambdaZipPath, lambdaLayerZipPath);
     default:
       core.setFailed("Language not supported");
   }
@@ -57,23 +57,23 @@ function determineLanguage(lambdaPath) {
   }
 }
 
-function buildGolang(lambdaPath, buildPath, artifactName) {
+function buildGolang(lambdaPath, lambdaZipPath) {
   const command = ` cd ${lambdaPath}
 GOOS=linux GOARCH=amd64 go build -o handler
-zip ${buildPath}/${artifactName} handler
+zip ${lambdaZipPath} handler
 rm handler
 `;
   try {
     execSync(command);
-    return [`${buildPath}/${artifactName}`]
+    return [lambdaZipPath]
   } catch (error) {
     core.setFailed(`An error occurred while building Golang: ${error.message}`);
   }
 }
 
-function buildPython(lambdaPath, buildPath, artifactName, artifactLayerName) {
+function buildPython(lambdaPath, lambdaZipPath, lambdaLayerZipPath) {
   const zipLambdaCommand = ` cd ${lambdaPath}/src
-zip -r ${buildPath}/${artifactName} .
+zip -r ${lambdaZipPath} .
 `;
   try {
     execSync(zipLambdaCommand);
@@ -83,20 +83,20 @@ zip -r ${buildPath}/${artifactName} .
       zipLayerCommand = ` cd ${lambdaPath}
 pipenv requirements > requirements.txt
 pip install -r requirements.txt -t python
-zip -q -r ${buildPath}/${artifactLayerName} python/
+zip -q -r ${lambdaLayerZipPath} python/
 rm -Rf python requirements.txt
   `;
     } else if (fs.existsSync(`${lambdaPath}/requirements.txt`)) {
       zipLayerCommand = ` cd ${lambdaPath}
 pip install -r requirements.txt -t python
-zip -q -r ${buildPath}/${artifactLayerName} python/
+zip -q -r ${lambdaLayerZipPath} python/
 rm -Rf python
 `;
     }else{
-      return [`${buildPath}/${artifactName}`] 
+      return [lambdaZipPath] 
     }
     execSync(zipLayerCommand);
-    return [`${buildPath}/${artifactName}`, `${buildPath}/${artifactLayerName}`] 
+    return [lambdaZipPath, lambdaLayerZipPath] 
   } catch (error) {
     core.setFailed(`An error occurred while building Python: ${error.message}`);
   }
@@ -104,13 +104,12 @@ rm -Rf python
 
 function buildJavascript(
   lambdaPath,
-  buildPath,
-  artifactName,
-  artifactLayerName
+  lambdaZipPath,
+  lambdaLayerZipPath
 ) {
   try {
     const zipLambdaCommand = ` cd ${lambdaPath}/src
-zip -r ${buildPath}/${artifactName} .
+zip -r ${lambdaZipPath} .
 `;
     execSync(zipLambdaCommand);
 
@@ -123,13 +122,13 @@ npm install --omit=dev
         fs.rmSync(`${lambdaPath}/nodejs`, { recursive: true, force: true });
         fs.mkdirSync(`${lambdaPath}/nodejs/node_modules`, { recursive: true });        
         execSync(`mv ${lambdaPath}/node_modules ${lambdaPath}/nodejs/node_modules`)
-        execSync(`zip -q -r ${buildPath}/${artifactLayerName} ${lambdaPath}/nodejs/`);
+        execSync(`zip -q -r ${lambdaLayerZipPath} ${lambdaPath}/nodejs/`);
       }
     }else{
-      return [`${buildPath}/${artifactName}`] 
+      return [lambdaZipPath] 
     }
     execSync(`cd ${lambdaPath} && rm -Rf nodejs node_modules`);
-    return [`${buildPath}/${artifactName}`, `${buildPath}/${artifactLayerName}`] 
+    return [lambdaZipPath, lambdaLayerZipPath] 
   } catch (error) {
     core.setFailed(
       `An error occurred while building Javascript: ${error.message}`
@@ -139,16 +138,15 @@ npm install --omit=dev
 
 function buildTypescript(
   lambdaPath,
-  buildPath,
-  artifactName,
-  artifactLayerName
+  lambdaZipPath,
+  lambdaLayerZipPath
 ) {
   try {
     const lambdaCommand = ` cd ${lambdaPath}
 npm install --production=false
 npm run build
 cd dist
-zip -r ${buildPath}/${artifactName} .
+zip -r ${lambdaZipPath} .
 `;
     execSync(lambdaCommand);
 
@@ -160,13 +158,13 @@ npm install --omit=dev
         fs.rmSync(`${lambdaPath}/nodejs`, { recursive: true, force: true });
         fs.mkdirSync(`${lambdaPath}/nodejs/node_modules`, { recursive: true });
         execSync(`mv ${lambdaPath}/node_modules ${lambdaPath}/nodejs/node_modules`)
-        execSync(`zip -q -r ${buildPath}/${artifactLayerName} ${lambdaPath}/nodejs/`);
+        execSync(`zip -q -r ${lambdaLayerZipPath} ${lambdaPath}/nodejs/`);
       }
     }else{
-      return [`${buildPath}/${artifactName}`] 
+      return [lambdaZipPath] 
     }
     execSync(`cd ${lambdaPath} && rm -Rf nodejs node_modules dist`);
-    return [`${buildPath}/${artifactName}`, `${buildPath}/${artifactLayerName}`] 
+    return [lambdaZipPath, lambdaLayerZipPath] 
   } catch (error) {
     core.setFailed(
       `An error occurred while building Typescript: ${error.message}`
