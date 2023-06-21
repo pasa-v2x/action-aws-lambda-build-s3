@@ -6,10 +6,10 @@ async function run() {
   try {
     const lambdaPaths = parseLambdaPaths();
     
-    lambdaPaths.forEach((lambdaPath) => {
-      const artifactFiles = build(lambdaPath);
-      artifactFiles.forEach((artifactFile) => {
-        upload(artifactFile);
+    lambdaPaths.forEach(async (lambdaPath) => {
+      const artifactFiles = await build(lambdaPath);
+      artifactFiles.forEach(async (artifactFile) => {
+        await upload(artifactFile);
       });
     });
     
