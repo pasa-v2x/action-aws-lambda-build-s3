@@ -2,7 +2,9 @@ const { execSync } = require("child_process");
 const fs = require("fs");
 const core = require("@actions/core");
 
-const build = async function (dir) {
+const { S3Client, PutObjectCommand } = require("@aws-sdk/client-s3");
+
+const buildAndUpload = async function (dir) {
   // call git to get the full path to the directory of the repo
   const repoPath = execSync("git rev-parse --show-toplevel").toString().trim();
 
@@ -21,13 +23,17 @@ const build = async function (dir) {
   // create switch the uses language to build
   switch (LANG) {
     case "golang":
-      return buildGolang(lambdaPath, lambdaZipPath);
+      await buildGolang(lambdaPath, lambdaZipPath);
+      break;
     case "python":
-      return buildPython(lambdaPath, lambdaZipPath, lambdaLayerZipPath);
+      await buildPython(lambdaPath, lambdaZipPath, lambdaLayerZipPath);
+      break;
     case "nodejs":
-      return buildJavascript(lambdaPath, lambdaZipPath, lambdaLayerZipPath);
+      await buildJavascript(lambdaPath, lambdaZipPath, lambdaLayerZipPath);
+      break;
     case "typescript":
-      return buildTypescript(lambdaPath, lambdaZipPath, lambdaLayerZipPath);
+      await buildTypescript(lambdaPath, lambdaZipPath, lambdaLayerZipPath);
+      break;
     default:
       core.setFailed("Language not supported");
   }
@@ -57,7 +63,7 @@ function determineLanguage(lambdaPath) {
   }
 }
 
-function buildGolang(lambdaPath, lambdaZipPath) {
+async function buildGolang(lambdaPath, lambdaZipPath) {
   const command = ` cd ${lambdaPath}
 GOOS=linux GOARCH=amd64 go build -o handler
 zip ${lambdaZipPath} handler
@@ -65,18 +71,19 @@ rm handler
 `;
   try {
     execSync(command);
-    return [lambdaZipPath]
+    upload(lambdaZipPath)
   } catch (error) {
     core.setFailed(`An error occurred while building Golang: ${error.message}`);
   }
 }
 
-function buildPython(lambdaPath, lambdaZipPath, lambdaLayerZipPath) {
+async function buildPython(lambdaPath, lambdaZipPath, lambdaLayerZipPath) {
   const zipLambdaCommand = ` cd ${lambdaPath}/src
 zip -r ${lambdaZipPath} .
 `;
   try {
     execSync(zipLambdaCommand);
+    upload(lambdaZipPath);
 
     let zipLayerCommand;
     if (fs.existsSync(`${lambdaPath}/Pipfile`)) {
@@ -93,16 +100,16 @@ zip -q -r ${lambdaLayerZipPath} python/
 rm -Rf python
 `;
     }else{
-      return [lambdaZipPath] 
+      return
     }
     execSync(zipLayerCommand);
-    return [lambdaZipPath, lambdaLayerZipPath] 
+    upload(lambdaLayerZipPath);
   } catch (error) {
     core.setFailed(`An error occurred while building Python: ${error.message}`);
   }
 }
 
-function buildJavascript(
+async function buildJavascript(
   lambdaPath,
   lambdaZipPath,
   lambdaLayerZipPath
@@ -112,6 +119,7 @@ function buildJavascript(
 zip -r ${lambdaZipPath} .
 `;
     execSync(zipLambdaCommand);
+    upload(lambdaZipPath);
 
     if (fs.existsSync(`${lambdaPath}/package.json`)) {
       execSync(` cd ${lambdaPath}
@@ -123,12 +131,10 @@ npm install --omit=dev
         fs.mkdirSync(`${lambdaPath}/nodejs/node_modules`, { recursive: true });        
         execSync(`mv ${lambdaPath}/node_modules ${lambdaPath}/nodejs/node_modules`)
         execSync(`zip -q -r ${lambdaLayerZipPath} ${lambdaPath}/nodejs/`);
+        upload(lambdaLayerZipPath)
       }
-    }else{
-      return [lambdaZipPath] 
+      execSync(`cd ${lambdaPath} && rm -Rf nodejs node_modules`);
     }
-    execSync(`cd ${lambdaPath} && rm -Rf nodejs node_modules`);
-    return [lambdaZipPath, lambdaLayerZipPath] 
   } catch (error) {
     core.setFailed(
       `An error occurred while building Javascript: ${error.message}`
@@ -136,7 +142,7 @@ npm install --omit=dev
   }
 }
 
-function buildTypescript(
+async function buildTypescript(
   lambdaPath,
   lambdaZipPath,
   lambdaLayerZipPath
@@ -149,6 +155,7 @@ cd dist
 zip -r ${lambdaZipPath} .
 `;
     execSync(lambdaCommand);
+    upload(lambdaZipPath);
 
     if (fs.existsSync(`${lambdaPath}/package.json`)) {
       execSync(` cd ${lambdaPath}
@@ -160,17 +167,45 @@ npm install --omit=dev
         execSync(`mv ${lambdaPath}/node_modules ${lambdaPath}/nodejs/node_modules`)
         execSync(`zip -q -r ${lambdaLayerZipPath} ${lambdaPath}/nodejs/`);
       }
-    }else{
-      return [lambdaZipPath] 
+      execSync(`cd ${lambdaPath} && rm -Rf nodejs node_modules dist`);
+      upload(lambdaLayerZipPath);
     }
-    execSync(`cd ${lambdaPath} && rm -Rf nodejs node_modules dist`);
-    return [lambdaZipPath, lambdaLayerZipPath] 
   } catch (error) {
     core.setFailed(
       `An error occurred while building Typescript: ${error.message}`
     );
-
   }
 }
 
-module.exports = build;
+async function upload(artifactPath){
+  try {
+    const bucket = core.getInput("s3-bucket", { required: true });
+    const s3Client = new S3Client();
+
+    // take the artifactPath grab the artifact filename
+    const artifactName = artifactPath.split("/").pop();
+    
+    // call git to get commit hash
+    const commitHash = execSync("git log -1 --format=format:%H")
+      .toString()
+      .trim();
+    // call git to get the name of the repo
+    const repoName = execSync("basename `git rev-parse --show-toplevel`")
+      .toString()
+      .trim();
+    if (fs.existsSync(artifactPath)) {
+      const uploadParams = {
+        Bucket: bucket,
+        Key: `${repoName}/${commitHash}/${artifactName}`,
+        Body: fs.createReadStream(artifactPath),
+      };
+
+      await s3Client.send(new PutObjectCommand(uploadParams));
+      fs.unlinkSync(artifactPath);
+    }
+  } catch (error) {
+    core.setFailed(`An error occurred while uploading to S3: ${error.message}`);
+  }
+}
+
+module.exports = buildAndUpload;

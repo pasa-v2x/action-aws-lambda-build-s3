@@ -1,18 +1,13 @@
-const build = require("./build")
-const upload = require("./upload")
+const buildAndUpload = require("./build")
 const core = require("@actions/core");
 
 async function run() {
   try {
     const lambdaPaths = parseLambdaPaths();
     
-    lambdaPaths.forEach(async (lambdaPath) => {
-      const artifactFiles = await build(lambdaPath);
-      artifactFiles.forEach(async (artifactFile) => {
-        await upload(artifactFile);
-      });
-    });
-    
+    for (const lambdaPath of lambdaPaths) {
+      await buildAndUpload(lambdaPath);
+    }   
   } catch (error) {
     core.setFailed(error.message);
   }
