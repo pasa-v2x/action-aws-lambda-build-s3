@@ -40,7 +40,6 @@ const buildAndUpload = async function (dir) {
 };
 
 function determineLanguage(lambdaPath) {
-  console.log(lambdaPath);
   if (
     fs.existsSync(`${lambdaPath}/go.mod`) ||
     fs.existsSync(`${lambdaPath}/go.sum`)
