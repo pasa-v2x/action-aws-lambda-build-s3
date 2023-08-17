@@ -128,9 +128,11 @@ npm install --omit=dev
 
       if (fs.existsSync(`${lambdaPath}/node_modules`)) {
         fs.rmSync(`${lambdaPath}/nodejs`, { recursive: true, force: true });
-        fs.mkdirSync(`${lambdaPath}/nodejs/node_modules`, { recursive: true });        
-        execSync(`mv ${lambdaPath}/node_modules ${lambdaPath}/nodejs/node_modules`)
-        execSync(`zip -q -r ${lambdaLayerZipPath} ${lambdaPath}/nodejs/`);
+        fs.mkdirSync(`${lambdaPath}/nodejs`, { recursive: true });        
+        execSync(`mv ${lambdaPath}/node_modules ${lambdaPath}/nodejs`)
+        execSync(`cd ${lambdaPath}
+          zip -q -r ${lambdaLayerZipPath} nodejs
+          cd -`);
         upload(lambdaLayerZipPath)
       }
       execSync(`cd ${lambdaPath} && rm -Rf nodejs node_modules`);
@@ -163,9 +165,11 @@ npm install --omit=dev
 `);
       if (fs.existsSync(`${lambdaPath}/node_modules`)) {
         fs.rmSync(`${lambdaPath}/nodejs`, { recursive: true, force: true });
-        fs.mkdirSync(`${lambdaPath}/nodejs/node_modules`, { recursive: true });
-        execSync(`mv ${lambdaPath}/node_modules ${lambdaPath}/nodejs/node_modules`)
-        execSync(`zip -q -r ${lambdaLayerZipPath} ${lambdaPath}/nodejs/`);
+        fs.mkdirSync(`${lambdaPath}/nodejs`, { recursive: true });
+        execSync(`mv ${lambdaPath}/node_modules ${lambdaPath}/nodejs`)
+        execSync(`cd ${lambdaPath}
+          zip -q -r ${lambdaLayerZipPath} nodejs
+          cd -`);
       }
       execSync(`cd ${lambdaPath} && rm -Rf nodejs node_modules dist`);
       upload(lambdaLayerZipPath);
