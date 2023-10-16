@@ -89,9 +89,7 @@ zip -r ${lambdaZipPath} .
     if (fs.existsSync(`${lambdaPath}/Pipfile`)) {
       zipLayerCommand = ` cd ${lambdaPath}
 pipenv install
-PY_VERSION=$(grep -oP 'python_version = "\K[^"]+' Pipfile)
-SITE_PACKAGES=$(pipenv --venv)/lib/$PY_VERSION/site-packages
-cd $SITE_PACKAGES
+cd $(pipenv --venv)/lib/python$(grep -oP 'python_version = "\K[^"]+' Pipfile)/site-packages
 zip -q -r ${lambdaLayerZipPath} *
 `;
     } else if (fs.existsSync(`${lambdaPath}/requirements.txt`)) {
