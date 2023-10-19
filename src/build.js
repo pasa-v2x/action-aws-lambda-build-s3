@@ -39,29 +39,30 @@ const buildAndUpload = async function (dir) {
   }
 };
 
+const path = require('path');
+const glob = require('glob');
+
 function determineLanguage(lambdaPath) {
-  if (
-    fs.existsSync(`${lambdaPath}/go.mod`) ||
-    fs.existsSync(`${lambdaPath}/go.sum`)
-  ) {
-    return "golang";
-  } else if (
-    fs.existsSync(`${lambdaPath}/requirements.txt`) ||
-    fs.existsSync(`${lambdaPath}/Pipfile`) ||
-    fs.existsSync(`${lambdaPath}/Pipfile.lock`)
-  ) {
-    return "python";
-  } else if (fs.existsSync(`${lambdaPath}/tsconfig.json`)) {
-    return "typescript";
-  } else if (
-    fs.existsSync(`${lambdaPath}/package.json`) ||
-    fs.existsSync(`${lambdaPath}/package-lock.json`) ||
-    fs.existsSync(`${lambdaPath}/yarn.lock`) ||
-    fs.existsSync(`${lambdaPath}/pnpm-lock.yaml`)
-  ) {
-    return "nodejs";
+  if (glob.sync(path.join(lambdaPath, '**/*.go')).length > 0 ||
+      fs.existsSync(path.join(lambdaPath, 'go.mod')) ||
+      fs.existsSync(path.join(lambdaPath, 'go.sum'))) {
+    return 'golang';
+  } else if (glob.sync(path.join(lambdaPath, '**/*.py')).length > 0 ||
+             fs.existsSync(path.join(lambdaPath, 'requirements.txt')) ||
+             fs.existsSync(path.join(lambdaPath, 'Pipfile')) ||
+             fs.existsSync(path.join(lambdaPath, 'Pipfile.lock'))) {
+    return 'python';
+  } else if (glob.sync(path.join(lambdaPath, '**/*.ts')).length > 0 ||
+             fs.existsSync(path.join(lambdaPath, 'tsconfig.json'))) {
+    return 'typescript';
+  } else if (glob.sync(path.join(lambdaPath, '**/*.js')).length > 0 ||
+             fs.existsSync(path.join(lambdaPath, 'package.json')) ||
+             fs.existsSync(path.join(lambdaPath, 'package-lock.json')) ||
+             fs.existsSync(path.join(lambdaPath, 'yarn.lock'))) {
+    return 'nodejs';
   }
 }
+
 
 async function buildGolang(lambdaPath, lambdaZipPath) {
   const command = ` cd ${lambdaPath}
