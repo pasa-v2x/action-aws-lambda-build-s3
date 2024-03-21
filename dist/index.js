@@ -43501,7 +43501,8 @@ async function upload(artifactPath){
     const artifactName = artifactPath.split("/").pop();
     
     // call git to get commit hash
-    const commitHash = execSync("git log -1 --format=format:%H")
+    const isShortHash = core.getInput("short-commit-hash", { required: false });
+    const commitHash = execSync(`git log -1 --format=format:%${isShortHash ? 'h' : 'H'}`)
       .toString()
       .trim();
     // call git to get the name of the repo
