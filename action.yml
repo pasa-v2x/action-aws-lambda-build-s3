@@ -1,6 +1,10 @@
 name: 'Build Lambdas and Push to S3'
 description: 'Zip up lambdas and lamba layers and push to s3'
 inputs:
+  short-commit-hash:
+    description : 'set to true to use an abbreviated commit hash'
+    require: false
+    default: false
   s3-bucket:
     description: 's3 bucket to upload artifacts'
     require: true
