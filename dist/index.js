@@ -43374,9 +43374,9 @@ function determineLanguage(lambdaPath) {
 
 async function buildGolang(lambdaPath, lambdaZipPath) {
   const command = ` cd ${lambdaPath}
-GOOS=linux GOARCH=amd64 go build -o handler
-zip ${lambdaZipPath} handler
-rm handler
+GOOS=linux GOARCH=amd64 go build -tags lambda.norpc -o bootstrap 
+zip ${lambdaZipPath} bootstrap
+rm bootstrap
 `;
   try {
     execSync(command);
