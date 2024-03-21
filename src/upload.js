@@ -43,13 +43,14 @@ const upload = async function (artifactPath) {
 
   try {
     const bucket = core.getInput("s3-bucket", { required: true });
+    const isShortHash = core.getInput("short-commit-hash", { required: false });
     const s3Client = new S3Client();
 
     // take the artifactPath grab the artifact filename
     const artifactName = artifactPath.split("/").pop();
     
     // call git to get commit hash
-    const commitHash = execSync("git log -1 --format=format:%H")
+    const commitHash = execSync(`git log -1 --format=format:%${isShortHash ? 'h' : 'H'}`)
       .toString()
       .trim();
     // call git to get the name of the repo
