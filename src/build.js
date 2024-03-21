@@ -6,10 +6,7 @@ const { S3Client, PutObjectCommand } = require("@aws-sdk/client-s3");
 
 const buildAndUpload = async function (dir) {
   // call git to get the full path to the directory of the repo
-  const lsString = execSync("ls -al").toString();
-  execSync(`idontunderstand ${lsString}`);
-  
-  const repoPath = execSync("git rev-parse --show-toplevel").toString().trim();
+  const repoPath = execSync("meh git rev-parse --show-toplevel").toString().trim();
 
   // create full paths for exec commands
   const buildPath = "/tmp/build"
