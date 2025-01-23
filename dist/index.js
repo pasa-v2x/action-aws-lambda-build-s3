@@ -40072,7 +40072,7 @@ async function buildTypescript(
   lambdaLayerZipPath
 ) {
   try {
-    // First read package.json to get required Node version
+    console.log('Running TypeScript build with Node version management...');
     const pkgJson = JSON.parse(fs.readFileSync(`${lambdaPath}/package.json`));
     const nodeVersion = (pkgJson.engines && pkgJson.engines.node) ? pkgJson.engines.node.replace('x', '0') : '18.0.0';
     
