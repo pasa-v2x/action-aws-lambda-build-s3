@@ -39,35 +39,27 @@ const buildAndUpload = async function (dir) {
   }
 };
 
+const path = require('path');
+const glob = require('glob');
+
 function determineLanguage(lambdaPath) {
-  if (
-    fs.existsSync(`${lambdaPath}/go.mod`) ||
-    fs.existsSync(`${lambdaPath}/go.sum`)
-  ) {
-    return "golang";
-  } else if (
-    fs.existsSync(`${lambdaPath}/requirements.txt`) ||
-    fs.existsSync(`${lambdaPath}/Pipfile`) ||
-    fs.existsSync(`${lambdaPath}/Pipfile.lock`)
-  ) {
-    return "python";
-  } else if (fs.existsSync(`${lambdaPath}/tsconfig.json`)) {
-    return "typescript";
-  } else if (
-    fs.existsSync(`${lambdaPath}/package.json`) ||
-    fs.existsSync(`${lambdaPath}/package-lock.json`) ||
-    fs.existsSync(`${lambdaPath}/yarn.lock`) ||
-    fs.existsSync(`${lambdaPath}/pnpm-lock.yaml`)
-  ) {
-    return "nodejs";
+  if (glob.sync(path.join(lambdaPath, '**/*.go')).length > 0) {
+    return 'golang';
+  } else if (glob.sync(path.join(lambdaPath, '**/*.py')).length > 0 ) {
+    return 'python';
+  } else if (glob.sync(path.join(lambdaPath, '**/*.ts')).length > 0 ) {
+    return 'typescript';
+  } else if (glob.sync(path.join(lambdaPath, '**/*.js')).length > 0 ) {
+    return 'nodejs';
   }
 }
 
+
 async function buildGolang(lambdaPath, lambdaZipPath) {
   const command = ` cd ${lambdaPath}
-GOOS=linux GOARCH=amd64 go build -o handler
-zip ${lambdaZipPath} handler
-rm handler
+GOOS=linux GOARCH=amd64 go build -tags lambda.norpc -o bootstrap 
+zip ${lambdaZipPath} bootstrap
+rm bootstrap
 `;
   try {
     execSync(command);
@@ -152,34 +144,26 @@ async function buildTypescript(
   lambdaLayerZipPath
 ) {
   try {
-    console.log('Running TypeScript build with Node version management...');
-    const pkgJson = JSON.parse(fs.readFileSync(`${lambdaPath}/package.json`));
-    const nodeVersion = (pkgJson.engines && pkgJson.engines.node) ? pkgJson.engines.node.replace('x', '0') : '18.0.0';
-    
-    // Setup correct Node version
-    const setupCommand = `export NVM_DIR="$HOME/.nvm"
-[ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
-nvm install ${nodeVersion}
-nvm use ${nodeVersion}`;
-    execSync(setupCommand, { stdio: 'inherit' });
-
-    const lambdaCommand = `cd ${lambdaPath}
+    const lambdaCommand = ` cd ${lambdaPath}
 npm install --production=false
 npm run build
 cd dist
-zip -r ${lambdaZipPath} .`;
-    
-    execSync(lambdaCommand, { stdio: 'inherit' });
+zip -r ${lambdaZipPath} .
+`;
+    execSync(lambdaCommand);
     upload(lambdaZipPath);
 
     if (fs.existsSync(`${lambdaPath}/package.json`)) {
-      execSync(`cd ${lambdaPath} && npm install --omit=dev`, { stdio: 'inherit' });
-      
+      execSync(` cd ${lambdaPath}
+npm install --omit=dev
+`);
       if (fs.existsSync(`${lambdaPath}/node_modules`)) {
         fs.rmSync(`${lambdaPath}/nodejs`, { recursive: true, force: true });
         fs.mkdirSync(`${lambdaPath}/nodejs`, { recursive: true });
-        execSync(`mv ${lambdaPath}/node_modules ${lambdaPath}/nodejs`);
-        execSync(`cd ${lambdaPath} && zip -q -r ${lambdaLayerZipPath} nodejs`);
+        execSync(`mv ${lambdaPath}/node_modules ${lambdaPath}/nodejs`)
+        execSync(`cd ${lambdaPath}
+          zip -q -r ${lambdaLayerZipPath} nodejs
+          cd -`);
       }
       execSync(`cd ${lambdaPath} && rm -Rf nodejs node_modules dist`);
       upload(lambdaLayerZipPath);
@@ -200,7 +184,8 @@ async function upload(artifactPath){
     const artifactName = artifactPath.split("/").pop();
     
     // call git to get commit hash
-    const commitHash = execSync("git log -1 --format=format:%H")
+    const isShortHash = core.getInput("short-commit-hash", { required: false });
+    const commitHash = execSync(`git log -1 --format=format:%${isShortHash ? 'h' : 'H'}`)
       .toString()
       .trim();
     // call git to get the name of the repo
