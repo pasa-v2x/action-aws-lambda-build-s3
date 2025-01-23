@@ -9,5 +9,5 @@ inputs:
       newline-separated list of relative paths for the lambdas to build and zip
     required: true
 runs:
-  using: 'node16'
+  using: 'node18'
   main: 'dist/index.js'
