@@ -40072,26 +40072,34 @@ async function buildTypescript(
   lambdaLayerZipPath
 ) {
   try {
-    const lambdaCommand = ` cd ${lambdaPath}
+    // First read package.json to get required Node version
+    const pkgJson = JSON.parse(fs.readFileSync(`${lambdaPath}/package.json`));
+    const nodeVersion = (pkgJson.engines && pkgJson.engines.node) ? pkgJson.engines.node.replace('x', '0') : '18.0.0';
+    
+    // Setup correct Node version
+    const setupCommand = `export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
+nvm install ${nodeVersion}
+nvm use ${nodeVersion}`;
+    execSync(setupCommand, { stdio: 'inherit' });
+
+    const lambdaCommand = `cd ${lambdaPath}
 npm install --production=false
 npm run build
 cd dist
-zip -r ${lambdaZipPath} .
-`;
-    execSync(lambdaCommand);
+zip -r ${lambdaZipPath} .`;
+    
+    execSync(lambdaCommand, { stdio: 'inherit' });
     upload(lambdaZipPath);
 
     if (fs.existsSync(`${lambdaPath}/package.json`)) {
-      execSync(` cd ${lambdaPath}
-npm install --omit=dev
-`);
+      execSync(`cd ${lambdaPath} && npm install --omit=dev`, { stdio: 'inherit' });
+      
       if (fs.existsSync(`${lambdaPath}/node_modules`)) {
         fs.rmSync(`${lambdaPath}/nodejs`, { recursive: true, force: true });
         fs.mkdirSync(`${lambdaPath}/nodejs`, { recursive: true });
-        execSync(`mv ${lambdaPath}/node_modules ${lambdaPath}/nodejs`)
-        execSync(`cd ${lambdaPath}
-          zip -q -r ${lambdaLayerZipPath} nodejs
-          cd -`);
+        execSync(`mv ${lambdaPath}/node_modules ${lambdaPath}/nodejs`);
+        execSync(`cd ${lambdaPath} && zip -q -r ${lambdaLayerZipPath} nodejs`);
       }
       execSync(`cd ${lambdaPath} && rm -Rf nodejs node_modules dist`);
       upload(lambdaLayerZipPath);
