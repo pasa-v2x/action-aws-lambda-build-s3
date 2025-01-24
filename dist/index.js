@@ -43427,16 +43427,13 @@ async function buildJavascript(
 ) {
   try {
     const packageJson = JSON.parse(fs.readFileSync(`${lambdaPath}/package.json`));
-    const nodeVersion = packageJson.engines?.node?.replace('>=', '') || '18.x';
+    let nodeVersion = packageJson.engines?.node?.replace('>=', '') || '18.x';
     
-    // Use volta or n to switch node versions
-    const setupNodeCommand = `
-      if command -v volta >/dev/null 2>&1; then
-        volta install node@${nodeVersion}
-      else
-        n install ${nodeVersion}
-      fi
-    `;
+    // Convert version patterns to major versions
+    nodeVersion = nodeVersion.replace('.x', '');
+    
+    // Use n to install the latest LTS version
+    const setupNodeCommand = `n ${nodeVersion}`;
     execSync(setupNodeCommand, { stdio: 'inherit' });
 
     const zipLambdaCommand = ` cd ${lambdaPath}/src
@@ -43475,16 +43472,13 @@ async function buildTypescript(
 ) {
   try {
     const packageJson = JSON.parse(fs.readFileSync(`${lambdaPath}/package.json`));
-    const nodeVersion = packageJson.engines?.node?.replace('>=', '') || '18.x';
+    let nodeVersion = packageJson.engines?.node?.replace('>=', '') || '18.x';
     
-    // Use volta or n to switch node versions
-    const setupNodeCommand = `
-      if command -v volta >/dev/null 2>&1; then
-        volta install node@${nodeVersion}
-      else
-        n install ${nodeVersion}
-      fi
-    `;
+    // Convert version patterns to major versions
+    nodeVersion = nodeVersion.replace('.x', '');
+    
+    // Use n to install the latest LTS version
+    const setupNodeCommand = `n ${nodeVersion}`;
     execSync(setupNodeCommand, { stdio: 'inherit' });
 
     const lambdaCommand = ` cd ${lambdaPath}
