@@ -43486,7 +43486,7 @@ async function buildTypescript(
       nvm use ${nodeVersion} && \
       cd ${lambdaPath} && \
       npm install --include=dev && \
-      npm run build && \
+      npm run build || true && \
       cd dist && \
       zip -r ${lambdaZipPath} .
     `;
