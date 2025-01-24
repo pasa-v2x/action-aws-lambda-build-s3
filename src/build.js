@@ -151,6 +151,7 @@ async function buildJavascript(
   }
 }
 
+
 async function buildTypescript(
   lambdaPath,
   lambdaZipPath,
