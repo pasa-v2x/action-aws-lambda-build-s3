@@ -114,7 +114,7 @@ async function buildJavascript(
     
     nodeVersion = nodeVersion.replace('.x', '');
     
-    const setupNodeCommand = `source $HOME/.nvm/nvm.sh && nvm use ${nodeVersion}`;
+    const setupNodeCommand = `source $HOME/.nvm/nvm.sh && nvm install ${nodeVersion} && nvm use ${nodeVersion}`;
     execSync(setupNodeCommand, { stdio: 'inherit', shell: '/bin/bash' });
 
     const zipLambdaCommand = ` cd ${lambdaPath}/src
@@ -157,7 +157,7 @@ async function buildTypescript(
     
     nodeVersion = nodeVersion.replace('.x', '');
     
-    const setupNodeCommand = `source $HOME/.nvm/nvm.sh && nvm use ${nodeVersion}`;
+    const setupNodeCommand = `source $HOME/.nvm/nvm.sh && nvm install ${nodeVersion} && nvm use ${nodeVersion}`;
     execSync(setupNodeCommand, { stdio: 'inherit', shell: '/bin/bash' });
 
     const lambdaCommand = ` cd ${lambdaPath}
