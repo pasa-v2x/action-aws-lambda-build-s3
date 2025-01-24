@@ -43426,6 +43426,18 @@ async function buildJavascript(
   lambdaLayerZipPath
 ) {
   try {
+    const packageJson = JSON.parse(fs.readFileSync(`${lambdaPath}/package.json`));
+    const nodeVersion = packageJson.engines?.node?.replace('>=', '') || '18.x';
+    
+    const setupNodeCommand = `
+      curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.0/install.sh | bash
+      export NVM_DIR="$HOME/.nvm"
+      [ -s "$NVM_DIR/nvm.sh" ] && \\. "$NVM_DIR/nvm.sh"
+      nvm install ${nodeVersion}
+      nvm use ${nodeVersion}
+    `;
+    execSync(setupNodeCommand, { stdio: 'inherit' });
+
     const zipLambdaCommand = ` cd ${lambdaPath}/src
 zip -r ${lambdaZipPath} .
 `;
@@ -43461,8 +43473,22 @@ async function buildTypescript(
   lambdaLayerZipPath
 ) {
   try {
+    // First read package.json to get node version
+    const packageJson = JSON.parse(fs.readFileSync(`${lambdaPath}/package.json`));
+    const nodeVersion = packageJson.engines?.node?.replace('>=', '') || '18.x';
+    
+    // Install nvm and use correct node version
+    const setupNodeCommand = `
+      curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.0/install.sh | bash
+      export NVM_DIR="$HOME/.nvm"
+      [ -s "$NVM_DIR/nvm.sh" ] && \\. "$NVM_DIR/nvm.sh"
+      nvm install ${nodeVersion}
+      nvm use ${nodeVersion}
+    `;
+    execSync(setupNodeCommand, { stdio: 'inherit' });
+
     const lambdaCommand = ` cd ${lambdaPath}
-npm install --production=false
+npm install
 npm run build
 cd dist
 zip -r ${lambdaZipPath} .
