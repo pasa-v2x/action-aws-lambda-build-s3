@@ -43431,30 +43431,35 @@ async function buildJavascript(
     
     nodeVersion = nodeVersion.replace('.x', '');
     
-    const setupNodeCommand = `source $HOME/.nvm/nvm.sh && nvm install ${nodeVersion} && nvm use ${nodeVersion}`;
-    execSync(setupNodeCommand, { stdio: 'inherit', shell: '/bin/bash' });
-
-    const zipLambdaCommand = ` cd ${lambdaPath}/src
-zip -r ${lambdaZipPath} .
-`;
-    execSync(zipLambdaCommand);
+    const buildCommand = `
+      source $HOME/.nvm/nvm.sh && \
+      nvm install ${nodeVersion} && \
+      nvm use ${nodeVersion} && \
+      cd ${lambdaPath}/src && \
+      zip -r ${lambdaZipPath} .
+    `;
+    execSync(buildCommand, { stdio: 'inherit', shell: '/bin/bash' });
     upload(lambdaZipPath);
 
     if (fs.existsSync(`${lambdaPath}/package.json`)) {
-      execSync(` cd ${lambdaPath}
-npm install --omit=dev
-`);
+      const layerCommand = `
+        source $HOME/.nvm/nvm.sh && \
+        nvm use ${nodeVersion} && \
+        cd ${lambdaPath} && \
+        npm install --omit=dev
+      `;
+      execSync(layerCommand, { stdio: 'inherit', shell: '/bin/bash' });
 
       if (fs.existsSync(`${lambdaPath}/node_modules`)) {
         fs.rmSync(`${lambdaPath}/nodejs`, { recursive: true, force: true });
-        fs.mkdirSync(`${lambdaPath}/nodejs`, { recursive: true });        
-        execSync(`mv ${lambdaPath}/node_modules ${lambdaPath}/nodejs`)
-        execSync(`cd ${lambdaPath}
-          zip -q -r ${lambdaLayerZipPath} nodejs
-          cd -`);
-        upload(lambdaLayerZipPath)
+        fs.mkdirSync(`${lambdaPath}/nodejs`, { recursive: true });
+        execSync(`mv ${lambdaPath}/node_modules ${lambdaPath}/nodejs && \
+          cd ${lambdaPath} && \
+          zip -q -r ${lambdaLayerZipPath} nodejs && \
+          rm -Rf nodejs node_modules
+        `, { stdio: 'inherit', shell: '/bin/bash' });
+        upload(lambdaLayerZipPath);
       }
-      execSync(`cd ${lambdaPath} && rm -Rf nodejs node_modules`);
     }
   } catch (error) {
     core.setFailed(
@@ -43474,32 +43479,38 @@ async function buildTypescript(
     
     nodeVersion = nodeVersion.replace('.x', '');
     
-    const setupNodeCommand = `source $HOME/.nvm/nvm.sh && nvm install ${nodeVersion} && nvm use ${nodeVersion}`;
-    execSync(setupNodeCommand, { stdio: 'inherit', shell: '/bin/bash' });
-
-    const lambdaCommand = ` cd ${lambdaPath}
-npm install
-npm run build
-cd dist
-zip -r ${lambdaZipPath} .
-`;
-    execSync(lambdaCommand);
+    const buildCommand = `
+      source $HOME/.nvm/nvm.sh && \
+      nvm install ${nodeVersion} && \
+      nvm use ${nodeVersion} && \
+      cd ${lambdaPath} && \
+      npm install && \
+      npm run build && \
+      cd dist && \
+      zip -r ${lambdaZipPath} .
+    `;
+    execSync(buildCommand, { stdio: 'inherit', shell: '/bin/bash' });
     upload(lambdaZipPath);
 
     if (fs.existsSync(`${lambdaPath}/package.json`)) {
-      execSync(` cd ${lambdaPath}
-npm install --omit=dev
-`);
+      const layerCommand = `
+        source $HOME/.nvm/nvm.sh && \
+        nvm use ${nodeVersion} && \
+        cd ${lambdaPath} && \
+        npm install --omit=dev
+      `;
+      execSync(layerCommand, { stdio: 'inherit', shell: '/bin/bash' });
+      
       if (fs.existsSync(`${lambdaPath}/node_modules`)) {
         fs.rmSync(`${lambdaPath}/nodejs`, { recursive: true, force: true });
         fs.mkdirSync(`${lambdaPath}/nodejs`, { recursive: true });
-        execSync(`mv ${lambdaPath}/node_modules ${lambdaPath}/nodejs`)
-        execSync(`cd ${lambdaPath}
-          zip -q -r ${lambdaLayerZipPath} nodejs
-          cd -`);
+        execSync(`mv ${lambdaPath}/node_modules ${lambdaPath}/nodejs && \
+          cd ${lambdaPath} && \
+          zip -q -r ${lambdaLayerZipPath} nodejs && \
+          rm -Rf nodejs node_modules dist
+        `, { stdio: 'inherit', shell: '/bin/bash' });
+        upload(lambdaLayerZipPath);
       }
-      execSync(`cd ${lambdaPath} && rm -Rf nodejs node_modules dist`);
-      upload(lambdaLayerZipPath);
     }
   } catch (error) {
     core.setFailed(
