@@ -112,12 +112,13 @@ async function buildJavascript(
     const packageJson = JSON.parse(fs.readFileSync(`${lambdaPath}/package.json`));
     const nodeVersion = packageJson.engines?.node?.replace('>=', '') || '18.x';
     
+    // Use volta or n to switch node versions
     const setupNodeCommand = `
-      curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.0/install.sh | bash
-      export NVM_DIR="$HOME/.nvm"
-      [ -s "$NVM_DIR/nvm.sh" ] && \\. "$NVM_DIR/nvm.sh"
-      nvm install ${nodeVersion}
-      nvm use ${nodeVersion}
+      if command -v volta >/dev/null 2>&1; then
+        volta install node@${nodeVersion}
+      else
+        n install ${nodeVersion}
+      fi
     `;
     execSync(setupNodeCommand, { stdio: 'inherit' });
 
@@ -156,17 +157,16 @@ async function buildTypescript(
   lambdaLayerZipPath
 ) {
   try {
-    // First read package.json to get node version
     const packageJson = JSON.parse(fs.readFileSync(`${lambdaPath}/package.json`));
     const nodeVersion = packageJson.engines?.node?.replace('>=', '') || '18.x';
     
-    // Install nvm and use correct node version
+    // Use volta or n to switch node versions
     const setupNodeCommand = `
-      curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.0/install.sh | bash
-      export NVM_DIR="$HOME/.nvm"
-      [ -s "$NVM_DIR/nvm.sh" ] && \\. "$NVM_DIR/nvm.sh"
-      nvm install ${nodeVersion}
-      nvm use ${nodeVersion}
+      if command -v volta >/dev/null 2>&1; then
+        volta install node@${nodeVersion}
+      else
+        n install ${nodeVersion}
+      fi
     `;
     execSync(setupNodeCommand, { stdio: 'inherit' });
 
