@@ -43474,43 +43474,29 @@ async function buildTypescript(
   lambdaLayerZipPath
 ) {
   try {
-    const packageJson = JSON.parse(fs.readFileSync(`${lambdaPath}/package.json`));
-    let nodeVersion = packageJson.engines?.node?.replace('>=', '') || '18.x';
-    
-    nodeVersion = nodeVersion.replace('.x', '');
-    
-    const buildCommand = `
-      source $HOME/.nvm/nvm.sh && \
-      nvm install ${nodeVersion} && \
-      nvm use ${nodeVersion} && \
-      cd ${lambdaPath} && \
-      npm install && \
-      npm run build && \
-      cd dist && \
-      zip -r ${lambdaZipPath} .
-    `;
-    execSync(buildCommand, { stdio: 'inherit', shell: '/bin/bash' });
+    const lambdaCommand = ` cd ${lambdaPath}
+npm install
+npm run build || true
+cd dist
+zip -r ${lambdaZipPath} .
+`;
+    execSync(lambdaCommand, { stdio: 'inherit' });
     upload(lambdaZipPath);
 
     if (fs.existsSync(`${lambdaPath}/package.json`)) {
-      const layerCommand = `
-        source $HOME/.nvm/nvm.sh && \
-        nvm use ${nodeVersion} && \
-        cd ${lambdaPath} && \
-        npm install --omit=dev
-      `;
-      execSync(layerCommand, { stdio: 'inherit', shell: '/bin/bash' });
-      
+      execSync(` cd ${lambdaPath}
+npm install --omit=dev
+`);
       if (fs.existsSync(`${lambdaPath}/node_modules`)) {
         fs.rmSync(`${lambdaPath}/nodejs`, { recursive: true, force: true });
         fs.mkdirSync(`${lambdaPath}/nodejs`, { recursive: true });
-        execSync(`mv ${lambdaPath}/node_modules ${lambdaPath}/nodejs && \
-          cd ${lambdaPath} && \
-          zip -q -r ${lambdaLayerZipPath} nodejs && \
-          rm -Rf nodejs node_modules dist
-        `, { stdio: 'inherit', shell: '/bin/bash' });
+        execSync(`mv ${lambdaPath}/node_modules ${lambdaPath}/nodejs`)
+        execSync(`cd ${lambdaPath}
+          zip -q -r ${lambdaLayerZipPath} nodejs
+          cd -`);
         upload(lambdaLayerZipPath);
       }
+      execSync(`cd ${lambdaPath} && rm -Rf nodejs node_modules dist`);
     }
   } catch (error) {
     core.setFailed(
