@@ -43475,12 +43475,12 @@ async function buildTypescript(
 ) {
   try {
     const lambdaCommand = ` cd ${lambdaPath}
-npm install
-npm run build || true
+npm install --include=dev
+npm run build
 cd dist
 zip -r ${lambdaZipPath} .
 `;
-    execSync(lambdaCommand, { stdio: 'inherit' });
+    execSync(lambdaCommand);
     upload(lambdaZipPath);
 
     if (fs.existsSync(`${lambdaPath}/package.json`)) {
@@ -43494,9 +43494,9 @@ npm install --omit=dev
         execSync(`cd ${lambdaPath}
           zip -q -r ${lambdaLayerZipPath} nodejs
           cd -`);
-        upload(lambdaLayerZipPath);
       }
       execSync(`cd ${lambdaPath} && rm -Rf nodejs node_modules dist`);
+      upload(lambdaLayerZipPath);
     }
   } catch (error) {
     core.setFailed(
