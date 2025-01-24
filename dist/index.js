@@ -43429,12 +43429,10 @@ async function buildJavascript(
     const packageJson = JSON.parse(fs.readFileSync(`${lambdaPath}/package.json`));
     let nodeVersion = packageJson.engines?.node?.replace('>=', '') || '18.x';
     
-    // Convert version patterns to major versions
     nodeVersion = nodeVersion.replace('.x', '');
     
-    // Use n to install the latest LTS version
-    const setupNodeCommand = `n ${nodeVersion}`;
-    execSync(setupNodeCommand, { stdio: 'inherit' });
+    const setupNodeCommand = `source /usr/local/share/nvm/nvm.sh && nvm use ${nodeVersion}`;
+    execSync(setupNodeCommand, { stdio: 'inherit', shell: '/bin/bash' });
 
     const zipLambdaCommand = ` cd ${lambdaPath}/src
 zip -r ${lambdaZipPath} .
@@ -43474,12 +43472,10 @@ async function buildTypescript(
     const packageJson = JSON.parse(fs.readFileSync(`${lambdaPath}/package.json`));
     let nodeVersion = packageJson.engines?.node?.replace('>=', '') || '18.x';
     
-    // Convert version patterns to major versions
     nodeVersion = nodeVersion.replace('.x', '');
     
-    // Use n to install the latest LTS version
-    const setupNodeCommand = `n ${nodeVersion}`;
-    execSync(setupNodeCommand, { stdio: 'inherit' });
+    const setupNodeCommand = `source /usr/local/share/nvm/nvm.sh && nvm use ${nodeVersion}`;
+    execSync(setupNodeCommand, { stdio: 'inherit', shell: '/bin/bash' });
 
     const lambdaCommand = ` cd ${lambdaPath}
 npm install
