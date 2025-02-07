@@ -57,9 +57,9 @@ function determineLanguage(lambdaPath) {
 
 async function buildGolang(lambdaPath, lambdaZipPath) {
   const command = ` cd ${lambdaPath}
-GOOS=linux GOARCH=amd64 go build -o handler
-zip ${lambdaZipPath} handler
-rm handler
+GOOS=linux GOARCH=amd64 go build -tags lambda.norpc -o bootstrap 
+zip ${lambdaZipPath} bootstrap
+rm bootstrap
 `;
   try {
     execSync(command);
@@ -184,7 +184,8 @@ async function upload(artifactPath){
     const artifactName = artifactPath.split("/").pop();
     
     // call git to get commit hash
-    const commitHash = execSync("git log -1 --format=format:%H")
+    const isShortHash = core.getInput("short-commit-hash", { required: false });
+    const commitHash = execSync(`git log -1 --format=format:%${isShortHash ? 'h' : 'H'}`)
       .toString()
       .trim();
     // call git to get the name of the repo
