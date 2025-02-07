@@ -13,5 +13,5 @@ inputs:
       newline-separated list of relative paths for the lambdas to build and zip
     required: true
 runs:
-  using: 'node16'
+  using: 'node20'
   main: 'dist/index.js'
